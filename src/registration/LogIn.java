@@ -89,12 +89,13 @@ public class LogIn {
         int messagesSent = 0;
         boolean running = true;
 
-        // ✅ Initialize MessageManager
+        // Initialize MessageManager
         MessageManager manager = new MessageManager(reg);
 
         while (running) {
+            // --- Display Menu ---
             System.out.println("\nMenu:");
-            System.out.println("1) Send Messages");
+            System.out.println("1) Send Message");
             System.out.println("2) Show recently sent messages");
             System.out.println("3) Quit");
             System.out.println("4) Display sent messages");
@@ -107,62 +108,57 @@ public class LogIn {
             String choice = scanner.nextLine();
 
             switch (choice) {
-                case "1": // Send Messages
+                case "1": // Send Message
                     if (messagesSent >= numMessages) {
                         System.out.println("You have reached the maximum number of messages for this session.");
                         break;
                     }
 
-                    for (int i = messagesSent; i < numMessages; i++) {
-                        System.out.print("Enter recipient (+country code, max 10 digits after code): ");
-                        String recipient = scanner.nextLine();
-                        System.out.print("Enter message (max 250 chars): ");
-                        String text = scanner.nextLine();
+                    System.out.print("Enter recipient (+country code, max 10 digits after code): ");
+                    String recipient = scanner.nextLine();
+                    System.out.print("Enter message (max 250 chars): ");
+                    String text = scanner.nextLine();
 
-                        Message msg = new Message(recipient, text);
+                    Message msg = new Message(recipient, text);
 
-                        // Validation
-                        if (!msg.checkMessageLength()) {
-                            System.out.println("Please enter a message of less than 250 characters.");
-                            i--; continue;
-                        }
-                        if (!msg.checkRecipientCell()) {
-                            System.out.println("Recipient number is incorrectly formatted or missing international code.");
-                            i--; continue;
-                        }
-
-                        // Message actions
-                        System.out.println("1) Send Message\n2) Disregard Message\n3) Store Message");
-                        System.out.print("Select: ");
-                        String action = scanner.nextLine();
-
-                        switch (action) {
-                            case "1":
-                                msg.sendMessage();
-                                manager.addMessage(msg, "sent");
-                                messagesSent++;
-                                break;
-                            case "2":
-                                System.out.println("Message disregarded.");
-                                manager.addMessage(msg, "disregard");
-                                messagesSent++;
-                                break;
-                            case "3":
-                                System.out.println("Message successfully stored.");
-                                manager.addMessage(msg, "store");
-                                messagesSent++;
-                                break;
-                            default:
-                                System.out.println("Invalid option, try again.");
-                                i--; // retry
-                                break;
-                        }
-
-                        if (messagesSent >= numMessages) break;
+                    // Validation
+                    if (!msg.checkMessageLength()) {
+                        System.out.println("Please enter a message of less than 250 characters.");
+                        break;
                     }
-                    break;
+                    if (!msg.checkRecipientCell()) {
+                        System.out.println("Recipient number is incorrectly formatted or missing international code.");
+                        break;
+                    }
 
-                case "2": // View stored messages
+                    // Message actions
+                    System.out.println("1) Send Message\n2) Disregard Message\n3) Store Message");
+                    System.out.print("Select: ");
+                    String action = scanner.nextLine();
+
+                    switch (action) {
+                        case "1":
+                            msg.sendMessage();
+                            manager.addMessage(msg, "sent");
+                            messagesSent++;
+                            break;
+                        case "2":
+                            System.out.println("Message disregarded.");
+                            manager.addMessage(msg, "disregard");
+                            messagesSent++;
+                            break;
+                        case "3":
+                            System.out.println("Message successfully stored.");
+                            manager.addMessage(msg, "store");
+                            messagesSent++;
+                            break;
+                        default:
+                            System.out.println("Invalid option, try again.");
+                            break;
+                    }
+                    break; // Return to menu
+
+                case "2": // View recently sent messages
                     if (manager.getSentMessages().isEmpty()) {
                         System.out.println("No messages have been sent or stored yet.");
                     } else {
@@ -205,7 +201,7 @@ public class LogIn {
             }
         }
 
-        // ✅ Save all messages to JSON file before exit
+        // Save messages to JSON file before exit
         System.out.println("Exiting QuickChat. Total messages sent: " + manager.getSentMessages().size());
         MessageStore.storeMessagesToJSON(manager.getSentMessages(), "messages.json");
         System.out.println("All messages saved to messages.json successfully!");

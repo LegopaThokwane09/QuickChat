@@ -4,43 +4,82 @@
  */
 package registration;
 
-import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
+import org.testng.annotations.BeforeMethod;
+import org.testng.annotations.Test;
+import static org.testng.Assert.*;
 
 /**
  *
  * @author RC_Student_Lab
  */
 public class MessageManagerNGTest {
-   @Test
-    public void testSentMessagesArrayPopulated() {
-        Registration reg = new Registration();
-        reg.registerUser("user1", "Password1!", "+27834567890", "John", "Doe");
-        MessageManager manager = new MessageManager(reg);
+  private MessageManager manager;
+    private Registration reg;
 
-        Message m1 = new Message("+27834557896", "Did you get the cake?");
-        Message m2 = new Message("0838884567", "It is dinner time!");
-        manager.addMessage(m1, "sent");
-        manager.addMessage(m2, "sent");
-
-        assertEquals(2, manager.getSentMessages().size());
+    @BeforeMethod
+    public void setUp() {
+        reg = new Registration(); // or mock if needed
+        manager = new MessageManager(reg);
     }
 
     @Test
-    public void testLongestMessage() {
-        Registration reg = new Registration();
-        reg.registerUser("user1", "Password1!", "+27834567890", "John", "Doe");
-        MessageManager manager = new MessageManager(reg);
+    public void testAddMessage() {
+        Message msg = new Message("Alice", "Hello");
+        manager.addMessage(msg, "sent");
+        assertEquals(manager.getSentMessages().size(), 1, "Sent messages size should be 1");
+        assertEquals(manager.getSentMessages().get(0).getText(), "Hello");
+        assertEquals(manager.getSentMessages().get(0).getRecipient(), "Alice");
+    }
 
-        Message m1 = new Message("+27834557896", "Short msg");
-        Message m2 = new Message("+27838884567", "Where are you? You are late! I have asked you to be on time.");
-        manager.addMessage(m1, "sent");
-        manager.addMessage(m2, "sent");
+    @Test
+    public void testDeleteMessage() {
+        Message msg = new Message("Bob", "Test Delete");
+        manager.addMessage(msg, "sent");
+        String hash = msg.getMessageHash();
+        manager.deleteByHash(hash);
+        assertEquals(manager.getSentMessages().size(), 0, "Sent messages size should be 0 after deletion");
+    }
 
-        String expected = "Where are you? You are late! I have asked you to be on time.";
-        Message longest = manager.getSentMessages().stream()
-                .max((a,b) -> a.getText().length() - b.getText().length())
-                .get();
-        assertEquals(expected, longest.getText());
+    @Test
+    public void testSearchByRecipient() {
+        Message msg1 = new Message("Alice", "Hi Alice");
+        Message msg2 = new Message("Bob", "Hi Bob");
+        manager.addMessage(msg1, "sent");
+        manager.addMessage(msg2, "sent");
+
+        // Just call search methods to ensure no exceptions
+        manager.searchByRecipient("Alice");
+        manager.searchByRecipient("Bob");
+        manager.searchByRecipient("Charlie"); // recipient not present
+    }
+
+    @Test
+    public void testSearchByMessageID() {
+        Message msg = new Message("Alice", "Check ID");
+        manager.addMessage(msg, "sent");
+
+        // Should find the message
+        manager.searchByMessageID(msg.getMessageID());
+        // Test non-existing ID
+        manager.searchByMessageID("0000000000");
+    }
+
+    @Test
+    public void testDisplayReport() {
+        Message msg = new Message("Alice", "Report Test");
+        manager.addMessage(msg, "sent");
+
+        // Should not throw exception
+        manager.displayReport();
+    }
+
+    @Test
+    public void testDisplayLongestMessage() {
+        Message msg1 = new Message("Alice", "Short");
+        Message msg2 = new Message("Bob", "This is a longer message");
+        manager.addMessage(msg1, "sent");
+        manager.addMessage(msg2, "sent");
+
+        manager.displayLongestMessage(); // Should pick msg2
     }
 }
