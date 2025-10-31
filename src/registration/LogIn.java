@@ -13,8 +13,7 @@ import java.util.Scanner;
  * @author RC_Student_lab
  */
 public class LogIn {
-    private Registration registeredUser;
-    private static List<Message> sentMessages = new ArrayList<>();
+     private Registration registeredUser;
 
     // Constructor
     public LogIn(Registration registeredUser) {
@@ -36,10 +35,9 @@ public class LogIn {
             return "Username or password incorrect, please try again.";
         }
     }
-
     // --- MAIN method -
     public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
+         Scanner scanner = new Scanner(System.in);
 
         // --- Registration Phase ---
         Registration reg = new Registration();
@@ -91,22 +89,30 @@ public class LogIn {
         int messagesSent = 0;
         boolean running = true;
 
-while (running) {
-    System.out.println("\nMenu:");
-    System.out.println("1) Send Messages");
-    System.out.println("2) Show recently sent messages ");
-    System.out.println("3) Quit");
-    System.out.print("Select: ");
-    String choice = scanner.nextLine();
+        // ✅ Initialize MessageManager
+        MessageManager manager = new MessageManager(reg);
 
-    switch (choice) {
-        case "1": // --- Send Messages ---
-             if (messagesSent >= numMessages) {
+        while (running) {
+            System.out.println("\nMenu:");
+            System.out.println("1) Send Messages");
+            System.out.println("2) Show recently sent messages");
+            System.out.println("3) Quit");
+            System.out.println("4) Display sent messages");
+            System.out.println("5) Display longest message");
+            System.out.println("6) Search by message ID");
+            System.out.println("7) Search by recipient");
+            System.out.println("8) Delete by hash");
+            System.out.println("9) Display report");
+            System.out.print("Select: ");
+            String choice = scanner.nextLine();
+
+            switch (choice) {
+                case "1": // Send Messages
+                    if (messagesSent >= numMessages) {
                         System.out.println("You have reached the maximum number of messages for this session.");
                         break;
                     }
 
-                    // ✅ For loop for multiple messages
                     for (int i = messagesSent; i < numMessages; i++) {
                         System.out.print("Enter recipient (+country code, max 10 digits after code): ");
                         String recipient = scanner.nextLine();
@@ -118,66 +124,50 @@ while (running) {
                         // Validation
                         if (!msg.checkMessageLength()) {
                             System.out.println("Please enter a message of less than 250 characters.");
-                            i--; // retry
-                            continue;
+                            i--; continue;
                         }
                         if (!msg.checkRecipientCell()) {
                             System.out.println("Recipient number is incorrectly formatted or missing international code.");
-                            i--; // retry
-                            continue;
+                            i--; continue;
                         }
 
-                        // Message action options
+                        // Message actions
                         System.out.println("1) Send Message\n2) Disregard Message\n3) Store Message");
                         System.out.print("Select: ");
                         String action = scanner.nextLine();
 
                         switch (action) {
                             case "1":
-                                msg.sendMessage(); // Display message info
-                                sentMessages.add(msg);
+                                msg.sendMessage();
+                                manager.addMessage(msg, "sent");
                                 messagesSent++;
-
-                                System.out.println("Press 0 to delete this message, or any other key to continue.");
-                                String deleteInput = scanner.nextLine();
-                                if (deleteInput.equals("0")) {
-                                    sentMessages.remove(msg);
-                                    messagesSent--;
-                                    System.out.println("Message deleted successfully.");
-                                }
                                 break;
-
                             case "2":
                                 System.out.println("Message disregarded.");
+                                manager.addMessage(msg, "disregard");
                                 messagesSent++;
                                 break;
-
                             case "3":
                                 System.out.println("Message successfully stored.");
-                                sentMessages.add(msg);
+                                manager.addMessage(msg, "store");
                                 messagesSent++;
                                 break;
-
                             default:
-                                System.out.println("Invalid option. Try again.");
+                                System.out.println("Invalid option, try again.");
                                 i--; // retry
                                 break;
                         }
 
-                        // Stop if user has sent enough messages
-                        if (messagesSent >= numMessages) {
-                            System.out.println("You’ve reached your message limit for this session.");
-                            break;
-                        }
+                        if (messagesSent >= numMessages) break;
                     }
                     break;
 
-                case "2": // --- View stored messages ---
-                    if (sentMessages.isEmpty()) {
+                case "2": // View stored messages
+                    if (manager.getSentMessages().isEmpty()) {
                         System.out.println("No messages have been sent or stored yet.");
                     } else {
                         System.out.println("\n--- Recently Sent Messages ---");
-                        for (Message m : sentMessages) {
+                        for (Message m : manager.getSentMessages()) {
                             System.out.println("MessageID: " + m.getMessageID());
                             System.out.println("Recipient: " + m.getRecipient());
                             System.out.println("Message: " + m.getText());
@@ -187,9 +177,28 @@ while (running) {
                     }
                     break;
 
-                case "3": // --- Quit ---
+                case "3": // Quit
                     running = false;
                     break;
+
+                case "4": manager.displaySentMessages(); break;
+                case "5": manager.displayLongestMessage(); break;
+                case "6":
+                    System.out.print("Enter Message ID: ");
+                    String id = scanner.nextLine();
+                    manager.searchByMessageID(id);
+                    break;
+                case "7":
+                    System.out.print("Enter recipient: ");
+                    String rec = scanner.nextLine();
+                    manager.searchByRecipient(rec);
+                    break;
+                case "8":
+                    System.out.print("Enter message hash: ");
+                    String hash = scanner.nextLine();
+                    manager.deleteByHash(hash);
+                    break;
+                case "9": manager.displayReport(); break;
 
                 default:
                     System.out.println("Invalid selection.");
@@ -197,8 +206,8 @@ while (running) {
         }
 
         // ✅ Save all messages to JSON file before exit
-        System.out.println("Exiting QuickChat. Total messages sent: " + sentMessages.size());
-        MessageStore.storeMessagesToJSON(sentMessages, "messages.json");
+        System.out.println("Exiting QuickChat. Total messages sent: " + manager.getSentMessages().size());
+        MessageStore.storeMessagesToJSON(manager.getSentMessages(), "messages.json");
         System.out.println("All messages saved to messages.json successfully!");
         scanner.close();
     }
