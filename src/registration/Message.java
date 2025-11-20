@@ -15,6 +15,9 @@ public class Message {
     private String recipient;
     private String text;
     private String messageHash;
+    
+     // No-arg constructor for Gson
+    public Message() {}
 
     public Message(String recipient, String text) {
         this.messageID = generateMessageID();

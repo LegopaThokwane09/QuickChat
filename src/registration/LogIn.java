@@ -202,9 +202,26 @@ public class LogIn {
         }
 
         // Save messages to JSON file before exit
-        System.out.println("Exiting QuickChat. Total messages sent: " + manager.getSentMessages().size());
-        MessageStore.storeMessagesToJSON(manager.getSentMessages(), "messages.json");
-        System.out.println("All messages saved to messages.json successfully!");
-        scanner.close();
+System.out.println("Exiting QuickChat. Total messages sent: " + manager.getAllMessages().size());
+MessageStore.storeMessagesToJSON(manager.getAllMessages(), "messages.json");
+System.out.println("All messages saved to messages.json successfully!");
+
+// Load messages back to verify JSON reading works
+List<Message> loadedMessages = MessageStore.readMessagesFromJSON("messages.json");
+
+if (loadedMessages != null) {
+    System.out.println("\nLoaded Messages from messages.json: " + loadedMessages.size());
+
+    if (!loadedMessages.isEmpty()) {
+        Message first = loadedMessages.get(0);
+        System.out.println("\nFirst Loaded Message:");
+        System.out.println("MessageID: " + first.getMessageID());
+        System.out.println("Recipient: " + first.getRecipient());
+        System.out.println("Message: " + first.getText());
+        System.out.println("Hash: " + first.getMessageHash());
+    }
+}
+
+scanner.close();
     }
 }

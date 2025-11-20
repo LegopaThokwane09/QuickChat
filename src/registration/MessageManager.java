@@ -23,6 +23,13 @@ public class MessageManager {
     public MessageManager(Registration reg) {
         this.reg = reg;
     }
+public List<Message> getAllMessages() {
+    List<Message> all = new ArrayList<>();
+    all.addAll(sentMessages);
+    all.addAll(storedMessages);
+    all.addAll(disregardedMessages);
+    return all;
+}
 
     // ✅ Add a message based on its flag type
     public void addMessage(Message msg, String flag) {
@@ -125,7 +132,6 @@ public class MessageManager {
         }
         System.out.println("Message hash not found.");
     }
-
     // ✅ Display a full sent message report
     public void displayReport() {
         if (sentMessages.isEmpty()) {
